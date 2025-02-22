@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cattle Cost Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: #f9f9f9;
+            font-size: 16px; /* Base font size for readability */
+        }
+        h1 {
+            font-size: 1.5em; /* Scales with base font size */
+            text-align: center;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #555;
+            background-color: #666;
+            display: flex; /* Flexbox for tab layout */
+            flex-wrap: wrap; /* Wrap tabs on small screens */
+        }
+        .tab button {
+            background-color: #888;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 12px 16px;
+            transition: 0.3s;
+            color: #fff;
+            flex: 1; /* Evenly distribute tab width */
+            text-align: center;
+            font-size: 1em;
+        }
+        .tab button:hover {
+            background-color: #999;
+        }
+        .tab button.active {
+            background-color: #444;
+        }
+        .tabcontent {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-top: none;
+            background-color: #fff;
+        }
+        label {
+            display: block;
+            margin: 8px 0 4px;
+            font-size: 1em;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+        button {
+            margin-top: 15px;
+            padding: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            width: 100%; /* Full width on mobile */
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #results, #marketResults {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1em;
+        }
+        #historyList {
+            margin-top: 10px;
+        }
+        .history-entry {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+            font-size: 0.9em;
+        }
+
+        /* Media Queries for Mobile */
+        @media (max-width: 600px) {
+            body {
+                padding: 5px;
+            }
+            .tab button {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+            .tabcontent {
+                padding: 10px;
+            }
+            label {
+                margin: 6px 0 3px;
+            }
+            input, button {
+                padding: 6px;
+            }
+            h1 {
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Cattle Cost Calculator</h1>
+
+    <!-- Tab Navigation -->
+    <div class="tab">
+        <button class="tablinks active" onclick="openTab(event, 'Calculator')">Calculator</button>
+        <button class="tablinks" onclick="openTab(event, 'DaysToMarket')">Days to Market</button>
+        <button class="tablinks" onclick="openTab(event, 'History')">History</button>
+    </div>
+
+    <!-- Calculator Tab -->
+    <div id="Calculator" class="tabcontent" style="display: block;">
+        <form id="cattleForm" onsubmit="calculateResults(event)">
+            <label for="feederPrice">Feeder Price ($/lb):</label>
+            <input type="number" id="feederPrice" step="0.01" required>
+
+            <label for="beginningWeight">Beginning Weight (lbs):</label>
+            <input type="number" id="beginningWeight" step="0.01" required>
+
+            <label for="costOfGain">Cost of Gain + Interest ($/lb):</label>
+            <input type="number" id="costOfGain" step="0.01" required>
+
+            <label for="sellingWeight">Selling Weight (lbs):</label>
+            <input type="number" id="sellingWeight" step="0.01" required>
+
+            <button type="submit">Calculate</button>
+        </form>
+
+        <div id="results">
+            <p>Cost of Cattle ($): <span id="costOfCattle">0.00</span></p>
+            <p>Total $: <span id="totalCost">0.00</span></p>
+            <p>Break Even Price ($/lb): <span id="breakEven">0.00</span></p>
+        </div>
+    </div>
+
+    <!-- Days to Market Tab -->
+    <div id="DaysToMarket" class="tabcontent">
+        <form id="marketForm" onsubmit="calculateDaysToMarket(event)">
+            <label for="startWeight">Start Weight (lbs):</label>
+            <input type="number" id="startWeight" step="0.01" required>
+
+            <label for="endWeight">End Weight (lbs):</label>
+            <input type="number" id="endWeight" step="0.01" required>
+
+            <label for="dailyGain">Daily Gain (lbs/day):</label>
+            <input type="number" id="dailyGain" step="0.01" required>
+
+            <button type="submit">Calculate</button>
+        </form>
+
+        <div id="marketResults">
+            <p>Days to Market: <span id="daysToMarket">0</span></p>
+            <p>Market Date: <span id="marketDate">-</span></p>
+        </div>
+    </div>
+
+    <!-- History Tab -->
+    <div id="History" class="tabcontent">
+        <h3>Calculation History</h3>
+        <div id="historyList">
+            <!-- History entries will be added here -->
+        </div>
+    </div>
+
+    <script>
+        let history = [];
+
+        function calculateResults(event) {
+            event.preventDefault();
+
+            let feederPrice = parseFloat(document.getElementById("feederPrice").value);
+            let beginningWeight = parseFloat(document.getElementById("beginningWeight").value);
+            let costOfGain = parseFloat(document.getElementById("costOfGain").value);
+            let sellingWeight = parseFloat(document.getElementById("sellingWeight").value);
+
+            let costOfCattle = feederPrice * beginningWeight;
+            let weightGain = sellingWeight - beginningWeight;
+            let gainCost = weightGain * costOfGain;
+            let totalCost = gainCost + costOfCattle;
+            let breakEvenPrice = totalCost / sellingWeight;
+
+            document.getElementById("costOfCattle").textContent = costOfCattle.toFixed(2);
+            document.getElementById("totalCost").textContent = totalCost.toFixed(2);
+            document.getElementById("breakEven").textContent = breakEvenPrice.toFixed(2);
+
+            let entry = {
+                type: "Calculator",
+                feederPrice: feederPrice,
+                beginningWeight: beginningWeight,
+                costOfGain: costOfGain,
+                sellingWeight: sellingWeight,
+                costOfCattle: costOfCattle.toFixed(2),
+                totalCost: totalCost.toFixed(2),
+                breakEvenPrice: breakEvenPrice.toFixed(2),
+                date: new Date().toLocaleString()
+            };
+            history.push(entry);
+            updateHistory();
+        }
+
+        function calculateDaysToMarket(event) {
+            event.preventDefault();
+
+            let startWeight = parseFloat(document.getElementById("startWeight").value);
+            let endWeight = parseFloat(document.getElementById("endWeight").value);
+            let dailyGain = parseFloat(document.getElementById("dailyGain").value);
+
+            let daysToMarket = (endWeight - startWeight) / dailyGain;
+            let today = new Date();
+            let marketDate = new Date(today);
+            marketDate.setDate(today.getDate() + Math.ceil(daysToMarket));
+
+            document.getElementById("daysToMarket").textContent = Math.ceil(daysToMarket);
+            document.getElementById("marketDate").textContent = marketDate.toLocaleDateString();
+
+            let entry = {
+                type: "DaysToMarket",
+                startWeight: startWeight,
+                endWeight: endWeight,
+                dailyGain: dailyGain,
+                daysToMarket: Math.ceil(daysToMarket),
+                marketDate: marketDate.toLocaleDateString(),
+                date: new Date().toLocaleString()
+            };
+            history.push(entry);
+            updateHistory();
+        }
+
+        function updateHistory() {
+            let historyList = document.getElementById("historyList");
+            historyList.innerHTML = "";
+
+            history.forEach((entry, index) => {
+                let div = document.createElement("div");
+                div.className = "history-entry";
+                if (entry.type === "Calculator") {
+                    div.innerHTML = `
+                        <strong>Calculation #${index + 1} - Cost Calculator (${entry.date})</strong><br>
+                        Feeder Price: $${entry.feederPrice}/lb<br>
+                        Beginning Weight: ${entry.beginningWeight} lbs<br>
+                        Cost of Gain + Interest: $${entry.costOfGain}/lb<br>
+                        Selling Weight: ${entry.sellingWeight} lbs<br>
+                        Cost of Cattle: $${entry.costOfCattle}<br>
+                        Total $: $${entry.totalCost}<br>
+                        Break Even Price: $${entry.breakEvenPrice}/lb
+                    `;
+                } else if (entry.type === "DaysToMarket") {
+                    div.innerHTML = `
+                        <strong>Calculation #${index + 1} - Days to Market (${entry.date})</strong><br>
+                        Start Weight: ${entry.startWeight} lbs<br>
+                        End Weight: ${entry.endWeight} lbs<br>
+                        Daily Gain: ${entry.dailyGain} lbs/day<br>
+                        Days to Market: ${entry.daysToMarket} days<br>
+                        Market Date: ${entry.marketDate}
+                    `;
+                }
+                historyList.appendChild(div);
+            });
+        }
+
+        function openTab(evt, tabName) {
+            let tabcontent = document.getElementsByClassName("tabcontent");
+            for (let i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+
+            let tablinks = document.getElementsByClassName("tablinks");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+    </script>
+</body>
+</html>
