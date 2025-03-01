@@ -86,6 +86,15 @@
             padding: 10px 0;
             font-size: 0.9em;
         }
+        #History button {
+            background-color: #4CAF50;
+            padding: 10px;
+            width: 100%; /* Full width like other buttons */
+            margin-bottom: 15px; /* Space before history list */
+        }
+        #History button:hover {
+            background-color: #45a049;
+        }
 
         /* Media Queries for Mobile */
         @media (max-width: 600px) {
@@ -170,6 +179,7 @@
     <!-- History Tab -->
     <div id="History" class="tabcontent">
         <h3>Calculation History</h3>
+        <button onclick="shareHistory()">Share History</button>
         <div id="historyList">
             <!-- History entries will be added here -->
         </div>
@@ -284,6 +294,55 @@
 
             document.getElementById(tabName).style.display = "block";
             evt.currentTarget.className += " active";
+        }
+
+        function shareHistory() {
+            if (history.length === 0) {
+                alert("No history to share yet!");
+                return;
+            }
+
+            // Format history as plain text
+            let shareText = "Cattle Cost Calculator History\n\n";
+            history.forEach((entry, index) => {
+                if (entry.type === "Calculator") {
+                    shareText += `Calculation #${index + 1} - Cost Calculator (${entry.date})\n`;
+                    shareText += `Feeder Price: $${entry.feederPrice}/lb\n`;
+                    shareText += `Beginning Weight: ${entry.beginningWeight} lbs\n`;
+                    shareText += `Cost of Gain + Interest: $${entry.costOfGain}/lb\n`;
+                    shareText += `Selling Weight: ${entry.sellingWeight} lbs\n`;
+                    shareText += `Cost of Cattle: $${entry.costOfCattle}\n`;
+                    shareText += `Total $: $${entry.totalCost}\n`;
+                    shareText += `Break Even Price: $${entry.breakEvenPrice}/lb\n\n`;
+                } else if (entry.type === "DaysToMarket") {
+                    shareText += `Calculation #${index + 1} - Days to Market (${entry.date})\n`;
+                    shareText += `Start Weight: ${entry.startWeight} lbs\n`;
+                    shareText += `End Weight: ${entry.endWeight} lbs\n`;
+                    shareText += `Daily Gain: ${entry.dailyGain} lbs/day\n`;
+                    shareText += `Days to Market: ${entry.daysToMarket} days\n`;
+                    shareText += `Market Date: ${entry.marketDate}\n\n`;
+                }
+            });
+
+            // Try Web Share API first
+            if (navigator.share) {
+                navigator.share({
+                    title: "Cattle Cost Calculator History",
+                    text: shareText
+                })
+                .then(() => console.log("History shared successfully"))
+                .catch((error) => console.log("Error sharing history:", error));
+            } else {
+                // Fallback to clipboard
+                navigator.clipboard.writeText(shareText)
+                    .then(() => {
+                        alert("History copied to clipboard! Paste it wherever you'd like.");
+                    })
+                    .catch((error) => {
+                        console.error("Failed to copy to clipboard:", error);
+                        alert("Failed to copy history. Please try again.");
+                    });
+            }
         }
     </script>
 </body>
