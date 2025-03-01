@@ -1,27 +1,4 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>Pay to Access My Site</title>
-  <style>
-    /* Basic styling to hide/show content */
-    #payment-instructions { display: block; }
-    #protected-content { display: none; }
-  </style>
-</head>
-<body>
-  <!-- Payment Instructions (shown by default) -->
-  <div id="payment-instructions">
-    <h1>Welcome!</h1>
-    <p>To access my site, send $20 to <a href="https://venmo.com/Garret-VanDerWilt">Garret-VanDerWilt</a> with your email in the note (e.g., "Website Access - your@email.com").</p>
-    <p>Once I receive your payment, I’ll send you a unique access link!</p>
-  </div>
-
-  <!-- Protected Content (hidden until valid code) -->
-  <div id="protected-content">
-    <h1>Welcome</h1>
-    <p></p>
-    <!-- Add your actual content here -->
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -368,33 +345,5 @@
             }
         }
     </script>
-</body>
-</html>
-  </div>
-
-  <script>
-    // Get the 'code' parameter from the URL
-    let urlParams = new URLSearchParams(window.location.search);
-    let code = urlParams.get("code");
-
-    // List of valid codes (update this manually for each paying user)
-    let validCodes = [
-      "xyz123",  // Example code 1
-      "abc789",  // Example code 2
-      "def456"   // Example code 3
-    ];
-
-    // Check if the code is valid
-    if (validCodes.includes(code)) {
-      // Hide payment instructions and show protected content
-      document.getElementById("payment-instructions").style.display = "none";
-      document.getElementById("protected-content").style.display = "block";
-    } else if (code !== null) {
-      // If a code is provided but invalid, alert and redirect
-      alert("Invalid access code! Please pay to get a valid link.");
-      window.location = "https://GWilt24.github.io"; // Redirect to base URL
-    }
-    // If no code is provided, just show the payment instructions (default)
-  </script>
 </body>
 </html>
